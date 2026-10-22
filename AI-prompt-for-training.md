@@ -70,3 +70,10 @@ Your goal: Automation is everything. At Rabobank, manual infrastructure clicks a
 • Branch policies, Pull Request validation gates, and secure state management inside pipelines.
 • Would you like me to write a fully secure, production-grade root/child module template targeting an Azure Resource Group to test your local configuration right now?
 Let's open the first tab and get to work!
+
+
+## things to consider
+- use remote state always
+- no manual infra change
+- enable state file versioning [for rollback when things break]
+- use state locking to prevent concurrent modifications

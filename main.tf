@@ -1,30 +1,38 @@
+locals {
+  test = {
+    "neptune" = {
+      name     = var.rg_name
+      location = var.rg_location
+    }
+    "saturn" = {
+      name     = "neptune-rg"
+      location = "eastus"
+    }
+  }
+}
+
 module "neptune_rg" {
   source      = "./module/rg"
-  rg_name     = var.rg_name
-  rg_location = var.rg_location
+  for_each    = local.test
+  rg_name     = each.value.name
+  rg_location = each.value.location
 }
 
-module "vnet" {
-  source        = "./module/vnet"
-  vnet_name     = var.vnet_name
-  vnet_location = module.neptune_rg.rg_location
-  vnet_rg       = module.neptune_rg.rg_name
+module "neptune_storage" {
+  source              = "./module/storage"
+  sg_name             = var.sg_name
+  sg_location         = module.neptune_rg["neptune"].rg_location
+  sg_rg               = module.neptune_rg["neptune"].rg_name
+  sg_replication_type = var.sg_replication_type
 }
 
-module "subnet" {
-  source    = "./module/subnet"
-  subnet    = var.subnet_name
-  vnet_name = module.vnet.vnet_name
-  subnet_rg = module.vnet.vnet_rg
-
+moved {
+  from = module.neptune_rg
+  to   = module.neptune_rg["neptune"]
 }
 
-module "nsg" {
-  source       = "./module/nsg"
-  nsg_name     = var.nsg_name
-  nsg_location = module.vnet.vnet_location
-  nsg_rg       = module.vnet.vnet_rg
-  subnet_id    = module.subnet.subnet_id
-
+import {
+  to = module.neptune_rg["saturn"].azurerm_resource_group.neptune_spoke
+  id = "/subscriptions/ae4bb2a6-1a5d-40cf-9cf1-d9eaef60a7a1/resourceGroups/neptune-rg"
 }
 
